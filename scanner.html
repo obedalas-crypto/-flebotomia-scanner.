@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Escanear orden — Laboratorios Analiza</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #101820; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+    header { padding: 16px; text-align: center; }
+    header h1 { font-size: 15px; margin: 0 0 2px; }
+    header p { font-size: 12px; color: #8B979D; margin: 0; }
+    #reader { width: 100%; max-width: 420px; margin: 0 auto; }
+    #reader video { border-radius: 12px; }
+    .status { text-align: center; font-size: 13px; color: #8B979D; padding: 10px 16px; }
+    .fallback {
+      max-width: 380px; margin: 20px auto; padding: 16px; background: #1A2530; border-radius: 14px;
+    }
+    .fallback p { font-size: 12px; color: #8B979D; margin: 0 0 10px; }
+    .fallback form { display: flex; gap: 8px; }
+    .fallback input {
+      flex: 1; border-radius: 8px; border: 1px solid #2C3A44; background: #101820; color: #fff;
+      padding: 10px; font-size: 14px;
+    }
+    .fallback button {
+      background: #0F6B65; color: #fff; border: none; border-radius: 8px; padding: 0 16px; font-weight: 600; font-size: 13px;
+    }
+    .noreturn { max-width: 380px; margin: 16px auto; padding: 12px 16px; background: #4A2E1E; border-radius: 10px; font-size: 12px; color: #F0C08A; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📷 Escanear orden</h1>
+    <p>Apunta la cámara al código de barras o QR de la orden</p>
+  </header>
+
+  <div id="reader"></div>
+  <p class="status" id="statusMsg">Cargando cámara…</p>
+  <div id="noReturnBanner" class="noreturn" style="display:none;">
+    No se recibió la URL de tu app (parámetro "return"). El código escaneado se mostrará en pantalla para que lo copies manualmente.
+  </div>
+
+  <div class="fallback">
+    <p>¿La cámara no funciona o el código no se lee bien? Escríbelo aquí manualmente:</p>
+    <form id="manualForm">
+      <input id="manualInput" placeholder="Código del paciente" autocomplete="off" />
+      <button type="submit">Usar</button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script>
+    function getParam(name) {
+      var params = new URLSearchParams(window.location.search);
+      return params.get(name) || '';
+    }
+
+    var returnUrl = getParam('return');
+    if (!returnUrl) {
+      document.getElementById('noReturnBanner').style.display = 'block';
+    }
+
+    function goBack(code) {
+      code = (code || '').trim();
+      if (!code) return;
+      if (!returnUrl) {
+        document.getElementById('statusMsg').textContent = 'Código leído: ' + code + ' (cópialo manualmente, no hay URL de regreso)';
+        return;
+      }
+      var sep = returnUrl.indexOf('?') === -1 ? '?' : '&';
+      window.location.href = returnUrl + sep + 'paciente=' + encodeURIComponent(code);
+    }
+
+    document.getElementById('manualForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      goBack(document.getElementById('manualInput').value);
+    });
+
+    try {
+      var scanner = new Html5QrcodeScanner('reader', {
+        fps: 10,
+        qrbox: { width: 260, height: 160 },
+        rememberLastUsedCamera: true,
+      }, false);
+      scanner.render(function onScanSuccess(decodedText) {
+        try { scanner.clear(); } catch (e) { /* ignore */ }
+        goBack(decodedText);
+      });
+      document.getElementById('statusMsg').textContent = 'Si tu navegador te pide permiso de cámara, acéptalo.';
+    } catch (err) {
+      document.getElementById('statusMsg').textContent = 'No se pudo iniciar la cámara. Usa el campo manual de abajo.';
+    }
+  </script>
+</body>
+</html>
