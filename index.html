@@ -81,10 +81,23 @@
     });
 
     try {
+      var formats = [
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.CODE_93,
+        Html5QrcodeSupportedFormats.CODABAR,
+        Html5QrcodeSupportedFormats.ITF,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+      ];
       var scanner = new Html5QrcodeScanner('reader', {
         fps: 10,
-        qrbox: { width: 260, height: 160 },
+        qrbox: { width: 280, height: 180 },
         rememberLastUsedCamera: true,
+        formatsToSupport: formats,
       }, false);
       scanner.render(function onScanSuccess(decodedText) {
         try { scanner.clear(); } catch (e) { /* ignore */ }
